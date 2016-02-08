@@ -58,6 +58,11 @@ public class VaadinUI extends UI {
             editor.setVisible(false);
             listCustomers();
         });
+        
+        editor.setDeleteHandler(customer -> {
+            repo.delete(customer);
+            listCustomers();
+        });
 
 		// Initialize listing
 		listCustomers();
