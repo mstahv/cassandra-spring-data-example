@@ -1,6 +1,8 @@
 package hello;
 
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import java.util.Arrays;
 import org.slf4j.Logger;
@@ -11,7 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cassandra.core.keyspace.CreateIndexSpecification;
 import org.springframework.cassandra.core.keyspace.CreateTableSpecification;
-import org.springframework.cassandra.core.keyspace.TableOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.cassandra.config.CassandraSessionFactoryBean;
 import org.springframework.data.cassandra.config.java.AbstractCassandraConfiguration;
@@ -60,7 +61,7 @@ public class Application extends AbstractCassandraConfiguration {
                     .column("lastName", DataType.text())
                     .column("firstName", DataType.text())
             );
-            
+
             // Create index to allow searching based on lastName
             cassandraTemplate.execute(CreateIndexSpecification.createIndex()
                     .tableName("Customer")
@@ -76,9 +77,18 @@ public class Application extends AbstractCassandraConfiguration {
             cassandraTemplate.insert(Arrays.asList(new Customer("Chloe",
                     "O'Brian"), new Customer("Kim", "Bauer")));
 
-            // with raw CQL, strate to low level session:
+            // with raw CQL, straight to low level session:
             nativeSessionObject.execute(
                     "INSERT INTO Customer (id,  firstName, lastName) VALUES ('matti', 'Matti', 'Tahvonen')");
+            
+            ResultSet result = nativeSessionObject.execute(
+                    "SELECT * from Customer WHERE id = 'matti'");
+            Row row = result.one();
+            log.info(
+                    "Found one result with SELECT * from Customer WHERE id = 'matti' :");
+            log.info("-------------------------------");
+            log.info(row.getString("firstName") + " " + row.
+                    getString("lastName"));
 
             // with CQL template
             cassandraTemplate.insert(new Customer("David", "Palmer"));
